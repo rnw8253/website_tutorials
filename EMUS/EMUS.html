@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+<!-- include javascript, jQuery FIRST -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]-->
+<head>
+
+       <!-- Basic Page Needs                                                                                                                                                                                                                                                                
+  ================================================== -->
+        <meta charset="utf-8">
+        <title>EMUS Tutorial</title>
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!-- Mobile Specific Metas                                                                                                                                                                                                                                                           
+  ================================================== -->
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+        <!-- CSS                                                                                                                                                                                                                                                                             
+  ================================================== -->
+        <link rel="shortcut icon" href="../img/packed_histone_.png">
+        <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="../stylesheets/mystylez.css">
+
+
+</head>
+<body>
+
+	<!-- Primary Page Layout
+	================================================== -->
+
+	<div class="container" style="margin-bottom: 100px;">
+		<div class="row">
+			<div class="col-md-10 col-md-offset-1">
+				<div class="page-header text-center">
+					<h1>EMUS</h1>
+					<h2>Eigenvector Method For Umbrella Sampling</h2>
+				</div>
+				
+			</div>
+
+			<div class="col-md-10 col-md-offset-1">
+			 EMUS is a method to reweight and stitch together umbrella sampling data from each window. Running EMUS will create a PMF with accurate error bars. The publication for this method can be found <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5010559/">here.</a> In this tutorial we will create a PMF as a function of the center-of-mass distance between two molecules (PDI-EEEFFFG). All the 
+files used in this tutorial can be found here (<a href="EMUS_tutorial.tar.gz" download="EMUS_tutorial.tar.gz">EMUS_tutorial.tar.gz</a>). The files can be unpacked using:
+			  <pre> tar -xzf EMUS_tutorial.tar.gz
+				</pre>
+				
+			 
+				<h3 id="cuda" style="color: #0702A8">Installing EMUS</h3>
+
+				<p align="justify">
+				The EMUS python package can be installed two ways. The easiest way is using pip:
+				</p><pre> pip install emus
+				  </pre>
+				Another way to install emus is to download the EMUS files from the <a href="https://github.com/ehthiede/EMUS">EMUS github page</a>. Then run the commands:
+				 <pre> cd EMUS-master/ <br> python setup.py install
+                                  </pre>
+				<p></p>
+
+				<h3 id="cuda" style="color: #0702A8">Input Files</h3>
+				<p align="justify">
+				Much like the WHAM method EMUS requires the collective variable (CV) data files and a metadata file as input. We need a CV data file for each window simulated while running umbrella sampling (e.g. <a href="CV_data/EEEFFFG_com.00.dat" download="CV_data/EEEFFFG_com.00.dat">CV_data/EEEFFFG_com.00.dat</a>). The first column of the CV data file is the timestep and the second column is the value of the CV each frame it was printed. These files are typically output in most umbrella sampling procedures. Now we need to 
+create a <a href="metadata.dat" download="metadata.dat">metadata.dat</a> file. A few lines of the file are shown below:
+				 </p><pre> 
+CV_data/EEEFFFG_com.00.dat  3.0  20
+CV_data/EEEFFFG_com.01.dat  3.5  20
+CV_data/EEEFFFG_com.02.dat  4.0  20
+CV_data/EEEFFFG_com.03.dat  4.5  20
+CV_data/EEEFFFG_com.04.dat  5.0  20
+CV_data/EEEFFFG_com.05.dat  5.5  20
+CV_data/EEEFFFG_com.06.dat  6.0  20
+CV_data/EEEFFFG_com.07.dat  6.5  20
+CV_data/EEEFFFG_com.08.dat  7.0  20
+CV_data/EEEFFFG_com.09.dat  7.5  20
+CV_data/EEEFFFG_com.10.dat  8.0  20
+CV_data/EEEFFFG_com.11.dat  8.5  20
+                                  </pre>
+				 This file should have at least one line for each window run in umbrella sampling. The first column points to the collective variable data file for a given window. The second column should be the value that the collective variable was biased too in that particualr window. The final column is the value of the spring constant of the harmonic potential used to bias the umbrella sampling simulations for the given window. If you have multiple CV data sets for a given window, you can have a new line for each data set or you can concatenate the data for each window together. In our example we used the center-of-mass distance between two molecules (PDI-EEEFFFG) as our CV. We analyzed our CV from 3.0 Å to 30.0 Å with a window every 0.5 Å for a total of 55 windows using a restraint constant of 20 kcal mol<sup>-1</sup> Å<sup>-2</sup>.
+				<p></p>
+				
+				<h3 id="cuda" style="color: #0702A8">Running EMUS</h3>
+                                <p align="justify">
+				  Now that we have the input files needed we can use python to run the EMUS analysis using the <a href="stitch.py" download="stitch.py">stitch.py</a> script below:
+				  </p><pre>import numpy as np
+from emus import usutils as uu
+from emus import emus, avar
+
+# Define Simulation Parameters                                                                                                                                                                                                                                          
+T = 298                             # Temperature in Kelvin                                                                                                                                                                                                             
+k_B = 1.9872041E-3                  # Boltzmann factor in kcal/mol                                                                                                                                                                                                      
+kT = k_B * T                        # Temperature in kcal/mol                                                                                                                                                                                                           
+meta_file = 'metadata.dat'          # Path to Meta File                                                                                                                                                                                                                 
+dim = 1                             # 1 Dimensional CV space.                                                                                                                                                                                                           
+#period = 360                       # Dihedral Angles periodicity                                                                                                                                                                                                       
+#domain = ((-180.0,180.))           # Range of dihedral angle values                                                                                                                                                                                                    
+domain = ((3.0,30.0))               # Range of distance angle values                                                                                                                                                                                                    
+nbins = 200                         # Number of Histogram Bins.                                                                                                                                                                                                         
+
+# Load data                                                                                                                                                                                                                                                             
+#psis, cv_trajs, neighbors = uu.data_from_meta(meta_file,dim,T=T,k_B=k_B,period=period) # If using a periodic collective variable                                                                                                                                       
+psis, cv_trajs, neighbors = uu.data_from_meta(meta_file,dim,T=T,k_B=k_B)
+
+# Calculate the partition function for each window                                                                                                                                                                                                                      
+z, F = emus.calculate_zs(psis,neighbors=neighbors) # z are the shift factors for each window                                                                                                                                                                            
+
+# Calculate error in each z value from the first iteration.                                                                                                                                                                                                             
+zerr, zcontribs, ztaus  = avar.calc_partition_functions(psis,z,F,iat_method='acor')
+
+# Calculate the PMF from EMUS                                                                                                                                                                                                                                           
+pmf,edges = emus.calculate_pmf(cv_trajs,psis,domain,z,nbins=nbins,kT=kT,use_iter=False)   # Calculate the pmf                                                                                                                                                           
+
+# Get the asymptotic error of each histogram bin.                                                                                                                                                                                                                       
+pmf_av_mns, pmf_avars = avar.calc_pmf(cv_trajs,psis,domain,z,F,nbins=nbins,kT=kT,iat_method=np.average(ztaus,axis=0))
+
+### Data Output Section ###                                                                                                                                                                                                                                             
+
+# Calcualte the center of each window.                                                                                                                                                                                                                                  
+pmf_centers = (edges[0][1:]+edges[0][:-1])/2.
+
+# Volume correction                                                                                                                                                                                                                                                     
+for i in range(len(pmf_av_mns)):
+    pmf_av_mns[i] += 1.2*np.log(pmf_centers[i])
+
+# Write out the data                                                                                                                                                                                                                                                    
+out=open("pmf.dat",'w')
+out2=open("c_vals.dat",'w')
+for i in range(len(pmf_centers)):
+    out.write("  %10.5f  %10.5f  %10.5f\n" %(pmf_centers[i], pmf_av_mns[i], np.sqrt(pmf_avars[i])))
+out.close
+for i in range(len(z)):
+    out2.write("  %10.5f  %10.10f\n" %(-np.log(z[i])*kT,kT*zerr[i]/z[i]))
+out2.close
+
+				  </pre>
+				  In the Define Simulation Parameters section of the script we can input the specifics for our umbrella sampling simulations. Things that need to be set are the temperature, boltzmann factor in the appropriate units, the domain of CV data, the number of bins to use in the potential of mean force, and the path to the <a href="metadata.dat" download="metadata.dat">metadata.dat</a> file. If your collective variable is periodic (dihedral) then the period also needs to be set here. The rest of script should be fine to use as is, unless your collective variable is periodic. In that case, in the Load Data section of the script period=period should be included in the uu.data_from_meta command. An example is included in <a href="stitch.py" download="stitch.py">stitch.py</a> in a commented line of code. 
+				  <br><br>
+				  This script will output two files: <a href="pmf.dat" download="pmf.dat">pmf.dat</a> which contains the calculated pmf as function of our collective variable and <a href="file:///Users/Ryan/Desktop/EMUS_tutorial/c_vals.dat" download="c_vals.dat">c_vals.dat</a> which has the values that each window was shifted so that they could be stitched together. These C values can be used to produce some useful plots to check the ergodicity of the sampling of our CV.   
+				  
+				<p></p>
+
+				<h3 id="cuda" style="color: #0702A8">Plotting</h3>
+                                <p align="justify">
+				  <a href="EMUS_plot.py" download="EMUS_plot.py">EMUS_plot.py</a> is a script that will take the two files that were produced by our EMUS script and create three plots. The first is a PMF as a function of our collective variable with error bars.    
+				  <br>
+				  <img src="PDI_dimer.PMF.png" alt="Unstitched PMF" height="400" width="500">
+				  <br><br>
+ The second plot is an unstitched PMF so we can look at how well EMUS was able to take the PMF from each window and stitch them together. This is a good way to look at how well we sampled our collective variable. If we have non-ergodic sampling between two neighboring windows it will often show up in this plot. For our example system we can see that we have good stitching between windows.
+				  <br>
+				  <img src="PDI_dimer.unstitched_fe.png" alt="Unstitched PMF" height="400" width="500">
+				  <br><br>
+ The third plot we create is the probability distributions of our collective variable for each window. Here we can check to make sure that we have complete sampling of our CV over the entire range of interest and that we have enough overlap between windows such that there are no gaps in sampling of our CV. For our example system we can see we have good overlap between all neighboring windows.
+				  <br>
+				  <img src="PDI_dimer.data_histogram.png" alt="Unstitched PMF" height="400" width="500">
+				  </p>
+
+			</div>
+
+
+		</div>
+
+		
+
+	</div><!-- container -->
+	
+	
+  <!-- Fixed navbar footer -->
+  <nav class="navbar-default navbar-bottom" id="foot-navbar">
+    <div class="container">
+   		<div class="navbar-header">
+        	<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          		<span class="icon-bar"></span>
+          		<span class="icon-bar"></span>
+       		</button>
+      	</div> 
+      	<div class="collapse navbar-collapse" style="text-align:center">
+        	<ul class="nav navbar-nav" style="font-size: 100%;" align="center">
+        		<li> <a href="http://www.chem.colostate.edu/" style="color:rgb(255,255,255); text-decoration: none"> CSU Chemistry </a> </li>
+				<li> <a href="http://www.colostate.edu/" style="color:rgb(255,255,255); text-decoration: none"> CSU </a> </li>
+        	</ul>
+      	</div><!--/.nav-collapse -->
+    </div>
+  </nav>
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52127208-1', 'colostate.edu');
+  ga('send', 'pageview');
+
+</script>
+<script>
+	$('.nav a').on('click', function(){
+    $(".navbar-toggle").click();
+});
+</script>
+
+
+<!-- End Document
+================================================== -->
+
+
+</body></html>

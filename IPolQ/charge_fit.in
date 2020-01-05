@@ -1,0 +1,33 @@
+&files
+  -p    PDI.prmtop
+  -o    fit.out
+&end
+
+&fitq
+  ipolq  CONF1/IPolQgrd1.vacu   CONF1/IPolQgrd1.solv   PDI.prmtop  1.0
+  ipolq  CONF2/IPolQgrd2.vacu   CONF2/IPolQgrd2.solv   PDI.prmtop  1.0
+  ipolq  CONF3/IPolQgrd3.vacu   CONF3/IPolQgrd3.solv   PDI.prmtop  1.0
+  ipolq  CONF4/IPolQgrd4.vacu   CONF4/IPolQgrd4.solv   PDI.prmtop  1.0
+  ipolq  CONF5/IPolQgrd5.vacu   CONF5/IPolQgrd5.solv   PDI.prmtop  1.0
+
+  % General conditions for the REsP
+  pnrg          0.0			# ("probe energy") tells mdgx to include points if they are accessible within 0.9572Å of points at which a TIP3P oxygen could be placed without incurring any van-der Waals penalty. TIP3P-related values are defaults
+  flim          0.39			# ("fitting limit") tells mdgx to search through each electrostatic potential grid for viable points but exclude new points from fitting if they are closer than 0.39Å to any of those already selected
+  nfpt          3750			# The number of fitting points select from each electrostatic potential grid
+  MaxMemory     4GB			# How much memory it can allocate for its matrix equations when solving the IPolQ least-squares problems
+
+  % Equivalencies on atoms go here
+  equalq    '@N1,N2'
+  equalq    '@O1,O2,O3,O4'
+  equalq    '@H9,H10'
+  equalq    '@C1,C2,C23,C20'
+  equalq    '@C8,C3,C19,C22'
+  equalq    '@C7,C27'
+  equalq    '@C9,C24,C14,C18'
+  equalq    '@H2,H8,H7,H4'
+  equalq    '@H3,H1,H5,H6'
+  equalq    '@C4,C10,C17,C13'
+  equalq    '@C16,C12,C11,C5'
+  equalq    '@C15,C6'
+# minq      '@C2'
+&end

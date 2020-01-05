@@ -1,0 +1,8 @@
+source leaprc.gaff
+loadAmberPrep PDI.prepi
+loadamberparams PDI.frcmod
+PDI = loadpdb PDI.pdb
+saveoff PDI PDI_iter0.lib
+setBox PDI vdw 10.0
+saveamberparm PDI PDI.prmtop PDI.rst7
+quit

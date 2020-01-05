@@ -1,0 +1,162 @@
+Run on Thu Jan 11 16:45:32 2018
+<++>-----------------------------------------------------------------------<++>
+
+INPUT LINE TEXT:
+
+mdgx -i charge_fit.in 
+
+
+INPUT FILE TEXT:
+
+&files
+  -p    PDI.prmtop
+  -o    fit.out
+&end
+
+&fitq
+  ipolq  iter0/IPolQgrd1.vacu   iter0/IPolQgrd1.solv   PDI.prmtop  1.0
+  ipolq  iter0/IPolQgrd2.vacu   iter0/IPolQgrd2.solv   PDI.prmtop  1.0
+  ipolq  iter0/IPolQgrd3.vacu   iter0/IPolQgrd3.solv   PDI.prmtop  1.0
+  ipolq  iter0/IPolQgrd4.vacu   iter0/IPolQgrd4.solv   PDI.prmtop  1.0
+  ipolq  iter0/IPolQgrd5.vacu   iter0/IPolQgrd5.solv   PDI.prmtop  1.0
+
+  % General conditions for the REsP
+  pnrg          0.0			# ("probe energy") tells mdgx to include points if they are accessible within 0.9572Å of points at which a TIP3P oxygen could be placed without incurring any van-der Waals penalty. TIP3P-related values are defaults
+  flim          0.39			# ("fitting limit") tells mdgx to search through each electrostatic potential grid for viable points but exclude new points from fitting if they are closer than 0.39Å to any of those already selected
+  nfpt          3750			# The number of fitting points select from each electrostatic potential grid
+  MaxMemory     4GB			# How much memory it can allocate for its matrix equations when solving the IPolQ least-squares problems
+
+  % Equivalencies on atoms go here
+  equalq    '@N1,N2'
+  equalq    '@O1,O2,O3,O4'
+  equalq    '@H9,H10'
+  equalq    '@C1,C2,C23,C20'
+  equalq    '@C8,C3,C19,C22'
+  equalq    '@C7,C27'
+  equalq    '@C9,C24,C14,C18'
+  equalq    '@H2,H8,H7,H4'
+  equalq    '@H3,H1,H5,H6'
+  equalq    '@C4,C10,C17,C13'
+  equalq    '@C16,C12,C11,C5'
+  equalq    '@C15,C6'
+# minq      '@C2'
+&end<++>-----------------------------------------------------------------------<++>
+
+<++>-----------------------------------------------------------------------<++>
+(1.) Overall accuracy of the derived charges.
+
+  The electrostatic potential was fitted in two ways.  First, a traditional 
+  REsP fit was performed to obtain a set of IPolQ charges by fitting them 
+  directly to the average of the vacuum and condensed-phase potentials.  Next, 
+  a two-component REsP was performed to fit a set of charges to the vacuum 
+  phase potential only, restrained under the same conditions as the first set 
+  of IPolQ charges, and to simultaneously fit a second set of IPolQ charges 
+  composed of the vacuum charge set plus a minimal perturbation.  This second 
+  approach to fitting IPolQ charges produces a result which can be related to 
+  charges appropriate for potential energy surfaces of systems in vacuum, 
+  which suggests a means of obtaining an appropriate set of torsion potential 
+  Fourier terms for IPolQ charges.
+
+                    Accuracy to Aggregate Target
+   Charge Set      Correlation   RMS Error   Snap
+ -------------     -----------  -----------  ----
+ IPolQ (orig)           0.7711       6.3527     1
+ Vacuum                 0.7453       5.5910     1
+ IPolQ (pert)           0.7711       6.3527     1
+
+  The electrostatic potential is easier to fit for some systems and targets 
+  than others.  The following table gives values for individual systems.
+
+                                   IPolQ (orig)      Vacuum      IPolQ (pert)
+ System                            Corr   RMSE    Corr   RMSE    Corr   RMSE
+ ------------------------------   ------ ------  ------ ------  ------ ------
+ PDI.prmtop                        0.771   6.35   0.745   5.59   0.771   6.35
+<++>-----------------------------------------------------------------------<++>
+
+<++>-----------------------------------------------------------------------<++>
+(2.) Charges on all atoms, proton units
+
+ System 1: PDI.prmtop
+ Atom  IPolQ,orig   Vacuum Q    Delta Q    IPolQ,pert
+ ----  ----------  ----------  ----------  ----------
+ O2       0.14052     0.12603     0.01448     0.14051
+ C2      -0.11493    -0.09531    -0.01962    -0.11493
+ N1      -0.14347    -0.12661    -0.01685    -0.14346
+ H9       0.10457     0.09106     0.01351     0.10457
+ C1      -0.11493    -0.09531    -0.01962    -0.11493
+ O1       0.14052     0.12603     0.01448     0.14051
+ C8      -0.17014    -0.14172    -0.02841    -0.17013
+ C9       0.09338     0.08705     0.00632     0.09338
+ H2       0.26765     0.20443     0.06320     0.26763
+ C10      0.01770     0.02065    -0.00293     0.01771
+ H3      -0.27732    -0.24239    -0.03493    -0.27731
+ C7       0.32351     0.27614     0.04736     0.32349
+ C3      -0.17014    -0.14172    -0.02841    -0.17013
+ C24      0.09338     0.08705     0.00632     0.09338
+ H8       0.26765     0.20443     0.06320     0.26763
+ C4       0.01770     0.02065    -0.00293     0.01771
+ H1      -0.27732    -0.24239    -0.03493    -0.27731
+ C5      -0.06940    -0.05731    -0.01208    -0.06939
+ C6       0.18060     0.15781     0.02276     0.18057
+ C11     -0.06940    -0.05731    -0.01208    -0.06939
+ C12     -0.06940    -0.05731    -0.01208    -0.06939
+ C13      0.01770     0.02065    -0.00293     0.01771
+ H5      -0.27732    -0.24239    -0.03493    -0.27731
+ C14      0.09338     0.08705     0.00632     0.09338
+ H4       0.26765     0.20443     0.06320     0.26763
+ C22     -0.17014    -0.14172    -0.02841    -0.17013
+ C21     -0.15675    -0.12638    -0.03034    -0.15673
+ C15      0.18060     0.15781     0.02276     0.18057
+ C16     -0.06940    -0.05731    -0.01208    -0.06939
+ C17      0.01770     0.02065    -0.00293     0.01771
+ H6      -0.27732    -0.24239    -0.03493    -0.27731
+ C18      0.09338     0.08705     0.00632     0.09338
+ H7       0.26765     0.20443     0.06320     0.26763
+ C19     -0.17014    -0.14172    -0.02841    -0.17013
+ C20     -0.11493    -0.09531    -0.01962    -0.11493
+ O3       0.14052     0.12603     0.01448     0.14051
+ N2      -0.14347    -0.12661    -0.01685    -0.14346
+ H10      0.10457     0.09106     0.01351     0.10457
+ C23     -0.11493    -0.09531    -0.01962    -0.11493
+ O4       0.14052     0.12603     0.01448     0.14051
+<++>-----------------------------------------------------------------------<++>
+
+<++>-----------------------------------------------------------------------<++>
+(3.) Charges on all atoms, prmtop format (proton units scaled by 18.2223)
+
+ System 1: PDI.prmtop
+  2.56041531e+00 -2.09428888e+00 -2.61417109e+00  1.90550586e+00 -2.09428888e+00
+  2.56041531e+00 -3.10015982e+00  1.70159833e+00  4.87683402e+00  3.22716925e-01
+ -5.05322588e+00  5.89473167e+00 -3.10015982e+00  1.70159833e+00  4.87683402e+00
+  3.22716925e-01 -5.05322588e+00 -1.26444536e+00  3.29040063e+00 -1.26444536e+00
+ -1.26444536e+00  3.22716925e-01 -5.05322588e+00  1.70159833e+00  4.87683402e+00
+ -3.10015982e+00 -2.85598100e+00  3.29040063e+00 -1.26444536e+00  3.22716925e-01
+ -5.05322588e+00  1.70159833e+00  4.87683402e+00 -3.10015982e+00 -2.09428888e+00
+  2.56041531e+00 -2.61417109e+00  1.90550586e+00 -2.09428888e+00  2.56041531e+00
+<++>-----------------------------------------------------------------------<++>
+
+<++>-----------------------------------------------------------------------<++>
+(4.) Dipole moments on all conformations, (units of Debye)
+
+                 IPolQ,orig        Vacuum        IPolQ,pert
+ System        Mean   Stdev.    Mean   Stdev.    Mean   Stdev.
+ ----------   ------  ------   ------  ------   ------  ------
+ PDI.prmtop     0.86    0.17     0.70    0.13     0.86    0.17
+<++>-----------------------------------------------------------------------<++>
+
+<++>-----------------------------------------------------------------------<++>
+(5.) Timings for the fitting problem.
+
+ Segment                 Time / Percentage
+ ----------------------  ---------  ------
+ Setup                        0.05    1.14
+ Grid Reading                 0.49   12.06
+ Grid Processing              2.02   49.76
+ Point Sorting                1.31   32.27
+ Point Selection              0.12    2.99
+ Least Squares, REsP          0.01    0.13
+ Least Squares, IPolQ         0.07    1.65
+ Output Printing              0.00    0.02
+ Total CPU Time               4.05  100.00
+<++>-----------------------------------------------------------------------<++>
+

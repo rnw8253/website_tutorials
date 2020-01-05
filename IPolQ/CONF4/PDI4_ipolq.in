@@ -1,0 +1,55 @@
+typically run 750ps of MD for a pure water system;
+&files
+  -p PDI4.prmtop
+  -c PDI4.equil.rst7
+  -o ipolq.out
+&end
+
+&cntrl
+  DoSETTLE = 1,
+  ntpr = 100,			#Print minimization progress every ntpr steps
+  nstlim = 100,			#Lenth of simulation (so ntpr can be 100)
+  nfistep = 0,			#Will print files out in segments based on ratio of nstlim/nfistep
+  dt = 0.002,			#Timestep
+  ntt = 3,			#Thermostat (Langevin = 3)
+  tempi = 298.0,		#Set temperature
+  temp0 = 298.0,		
+  gamma_ln = 3.0,		#Collision frequency in ps-1
+&end
+
+&ipolq
+  ntqs          500,				#Number of steps between snapshots
+  nqframe       500,				#The number of snapshots to be taken for measuring the time-averaged solvent density
+  nsteqlim    10000,				#Equilibration time to make sure water is relaxed
+  qshell1      3.0,				#Distance at which to locate the first surface charges and to stop collecting charges explicitly from solvent. Default = 5
+  qshell2      4.0,				#Distance to locate 2nd shell
+  qshell3      5.0,				#Distance to locate 3rd Shell
+  nqphpt       200,				#number of point per molecule in SASA-like calculation. Default=100
+  minqwt       0.1,				#stiffness of harmonic restraint by whcih to restrain fitted shell charges to zero
+  solute      ':1',				#Solute molecule specified by ambmask string
+  qmlev        'MP2',				#The level of QM theory to use. Default = MP2
+  basis       'cc-pvTZ',	  		#The QM basis set to use. Default = cc-pvDZ
+  modq        ':WAT & @O'     -1.0106,		#Fixed-charge water models should have their dipoles increased by an amount equal to the original model's dipole less 1.85
+  modq        ':WAT & @H1,H2'  0.5053,		#This is for TIP3P water model
+  verbose     	 1,      	       		#If set to 1, useful for hot runs to see if the input succesfully completes the SRFP calculation
+  checkex      	 0,				#Activates safety checks for the existence of QM executables at the start of the run
+  rqminp      	 1,				#Retain QM input files after the run. Default=0 (Off)
+  rqmout    	 1,				#Unclear what this is. Probably something about retaining files
+  rqmchk    	 1,				#Retain QM checkpoint files after run. Default=0 (Off)
+  
+  scrdir "QM/",  #Scratch space to run QM calculation, neeed different spaces for each calculations so they dont overwrite each other
+
+  qmprog    'orca',			  	       	     #QM package to use (gaussian or orca)
+  qmpath  '/mnt/lustre_fs/users/mjmcc/apps/orca/orca',	     #Path to the QM Package
+  uvpath "/mnt/lustre_fs/users/mjmcc/apps/orca/orca_vpot",
+  maxcore = 5000,
+
+  
+  unx  90,
+  uny  90,
+  unz  90,
+  uhx 0.2,
+  uhy 0.2,
+  uhz 0.2,
+  GridFile 'IPolQgrd4',
+&end

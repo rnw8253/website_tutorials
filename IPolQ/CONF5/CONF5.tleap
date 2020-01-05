@@ -1,0 +1,10 @@
+source leaprc.gaff
+source leaprc.protein.ff15ipq
+source leaprc.water.tip3p
+loadoff PDI_iter0.lib
+loadamberparams ../../PDI.frcmod 
+x = loadPdb PDI5.pdb
+solvatebox x TIP3PBOX 12.0
+savepdb x PDI5.pdb
+saveAmberParm x PDI5.prmtop PDI5.rst7
+quit

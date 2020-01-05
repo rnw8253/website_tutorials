@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+<!-- include javascript, jQuery FIRST -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]-->
+<head>
+
+	<!-- Basic Page Needs
+  ================================================== -->
+	<meta charset="utf-8">
+	<title>IPolQ Tutorial</title>
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<!-- Mobile Specific Metas
+  ================================================== -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<!-- CSS
+  ================================================== -->
+	<link rel="shortcut icon" href="../img/packed_histone_.png">
+	<link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="../stylesheets/mystylez.css">
+
+
+</head>
+<body>
+
+	<!-- Primary Page Layout
+	================================================== -->
+
+	<div class="container" style="margin-bottom: 100px;">
+		<div class="row">
+			<div class="col-md-10 col-md-offset-1">
+				<div class="page-header text-center">
+					<h1>IPolQ</h1>
+					<h2>Deriving Implicitly Polarized Charges in mdgx</h2>
+				</div>
+				
+			</div>
+
+			<div class="col-md-10 col-md-offset-1">
+				 Below are 4 steps outlining the procedure for deriving the charges of a molecule using the IPolQ method. <a href="http://ambermd.org/tutorials/advanced/tutorial28/Part1.php">Click here</a><br /> for a more detailed tutorial by the Amber Project. In this tutorial we will be parameterizing Perylene Diimide (PDI) in pure water. All files used in this tutorial can be found here (<a href="IPolQ_tutorial.tar.gz" download="IPolQ_tutorial.tar.gz">IPolQ_tutorial.tar.gz</a>). 
+
+				<h3 id="cuda" style="color: #0702A8">Stage 1: Initial Parameters and Conformations of the Molecule</h3>
+
+				<p align="justify">
+				  The first stage of the procedure involves creating initial parameters, followed by the generation of several conformations of our molecule. The conformations should be representative of the conformations the molecue will actually occupy in simulation. There are a few ways in which these conformations can be created, which will be discussed below. We will then run a belly simulation for each conformation in which the molecule will be restrained from moving and the solvent will be allowed to move around the molecule. These simulations will then be used by the mdgx program in stage 2. 
+				  <br><br>
+  To begin we must first generate a structure of the molecule. This can be accomplished using the GaussView software. It is not necessary to run a geometry optimization of the structure. <a href="PDI.pdb" download="PDI.pdb">PDI.pdb</a> contains the structure of our PDI molecule.
+				  <br> <br>
+				 We use antechamber to guess the initial charges on the molecule. This command will output a <a href="PDI.prepi" download="PDI.prepi">PDI.prepi</a> file with a list of atoms and their charges.    
+				<pre> antechamber -i PDI.pdb -fi pdb -o PDI.prepi -fo prepi -c bcc
+                                </pre>
+				
+				  <br>
+				 Now we need to create a frcmod file with the bonded and non-bonded parameters of a molecule. This command will create <a href="PDI.frcmod" download="PDI.frcmod">PDI.frcmod</a> which contains a list of bonded parameters for the molecule which are not covered under the GAFF forcefield.
+				<pre> parmchk -i PDI.prepi -f prepi -o PDI.frcmod
+                                </pre>
+				
+				<br>
+				 Using the prepi file and the frcmod file we will create a tleap library file using tleap. We now have all the parameters needed to create a prmtop and coordinate file. <a href="GenTopology.tleap" download="GenTopology.tleap">GenTopology.tleap</a> is an example tleap script which will create <a href="PDI.prmtop" download="PDI.prmtop">PDI.prmtop</a>, <a href="PDI.rst7" download="PDI.rst7">PDI.rst7</a> and <a href="PDI.lib" download="PDI.lib">PDI.lib</a> files for our molecule and can be run using this command: 
+				<pre> tleap -f GenTopology.tleap
+                                </pre>
+
+				<br>
+				Next we need to generate several conformations of the molecule. This can be done in several ways. One method is to use mdgx to create various conformations by rotating specific angles and dihedrals. More information on this method can be found <a href="http://ambermd.org/tutorials/advanced/tutorial28/Part1.php">here</a>. Another way to generate conformations could be using a simulated annealing approach. In this tutorial we will grab conformations from a simulation of a single PDI molecule. The number of conformations needed will be dependent on the molecule being parameterized. If the molecule is smaller and more rigid we need less conformations, but we will still need a few conformations (3-5) to sample flexions within the molecule. The larger and less rigid the molecule becomes the more conformations that will be needed. The time required to parameterize the charges of the molecule will increase with more conformations, but conformations should sample much of the conformational space the molecule can be found in. PDI is a rigid planar molecule so we chose five conformations with various flexions.
+				
+				<br><br> 
+
+				5 PDI Conformations:
+				<br>
+				<a href="conformations/PDI1.pdb" download="conformations/PDI1.pdb">PDI1.pdb</a>
+				<br>
+				<a href="conformations/PDI2.pdb" download="conformations/PDI2.pdb">PDI2.pdb</a>
+				<br>
+				<a href="conformations/PDI3.pdb" download="conformations/PDI3.pdb">PDI3.pdb</a>
+				<br>
+				<a href="conformations/PDI4.pdb" download="conformations/PDI4.pdb">PDI4.pdb</a>
+				<br>
+				<a href="conformations/PDI5.pdb" download="conformations/PDI5.pdb">PDI5.pdb</a>
+
+				<br>
+				<br>
+				
+				At this point we need to run belly simulations of each conformation in our solvent. <a href="belly_simulations.sh" download="belly_simulations.sh">belly_simulations.sh</a> is a submit script for our local cluster which solvates each conformation in water and creates a prmtop and rst7 using <a href="equilibrate.tleap" download="equilibrate.tleap">equilibrate.tleap</a>. It then runs a minimization (<a href="min.in" download="min.in">min.in</a>) and belly simulation (<a href="equil.in" download="equil.in">equil.in</a>) for each conformation. 
+
+				<br><br>
+				Here are the output directories of the belly_simulations.sh script:
+				<br>
+				<a href="CONF1/" download="CONF1/">CONF1/</a>
+				<br>
+				<a href="CONF2/" download="CONF2/">CONF2/</a>
+				<br>
+				<a href="CONF3/" download="CONF3/">CONF3/</a>
+				<br>
+				<a href="CONF4/" download="CONF4/">CONF4/</a>
+				<br>
+				<a href="CONF5/" download="CONF5/">CONF5/</a>
+
+				<br><br>
+
+				At the end of Stage 1 we have created initial parameters for our molecule including an initial guess of the charges on the atoms. We also created and ran belly simulations of several conformations which will be used to sample solvent distributions around the molecule in stage 2. 
+				
+				
+				</p>
+			
+				<h3 id="cuda" style="color: #0702A8">Stage 2: QM With and Without Time-Averaged Solvent Densities.</h3>
+				
+				<p align="justify">
+				   In stage 2 the belly simulations of each conformation will be used by mdgx to calculate the time-averaged electrostatic potential due to the solvent. For a more detailed description of how this done click <a href="http://ambermd.org/tutorials/advanced/tutorial28/Part2.php">here</a>. All that we need to do in this stage is to prepare an mdgx input file for each of the conformations we created in stage 1. Below is an example input file (<a href="ipolq_orca.in" download="ipolq_orca.in">ipolq_orca.in</a>) for a single conformation to be used on the local cluster:
+				<pre>
+typically run 750ps of MD for a pure water system;
+&files
+  -p PDI{CONF}.prmtop
+  -c PDI{CONF}.equil.rst7
+  -o ipolq.out
+&end
+
+&cntrl
+  DoSETTLE = 1,
+  ntpr = 100,                   #Print minimization progress every ntpr steps
+  nstlim = 100,                 #Lenth of simulation (so ntpr can be 100)
+  nfistep = 0,                  #Will print files out in segments based on ratio of nstlim/nfistep
+  dt = 0.002,                   #Timestep
+  ntt = 3,                      #Thermostat (Langevin = 3)
+  tempi = 298.0,                #Set temperature
+  temp0 = 298.0,
+  gamma_ln = 3.0,               #Collision frequency in ps-1
+&end
+
+&ipolq
+  ntqs          500,                            #Number of steps between snapshots
+  nqframe       500,                            #The number of snapshots to be taken for measuring the time-averaged solvent density
+  nsteqlim    10000,                            #Equilibration time to make sure water is relaxed
+  qshell1      3.0,                             #Distance at which to locate the first surface charges and to stop collecting charges explicitly from solvent. Default = 5
+  qshell2      4.0,                             #Distance to locate 2nd shell
+  qshell3      5.0,                             #Distance to locate 3rd Shell
+  nqphpt       200,                             #number of point per molecule in SASA-like calculation. Default=100
+  minqwt       0.1,                             #stiffness of harmonic restraint by whcih to restrain fitted shell charges to zero
+  solute      ':1',                             #Solute molecule specified by ambmask string
+  qmlev        'MP2',                           #The level of QM theory to use. Default = MP2
+  basis       'cc-pvTZ',                        #The QM basis set to use. Default = cc-pvDZ
+  modq        ':WAT & @O'     -1.0106,          #Fixed-charge water models should have their dipoles increased by an amount equal to the original model's dipole less 1.85
+  modq        ':WAT & @H1,H2'  0.5053,          #This is for TIP3P water model
+  verbose        1,                             #If set to 1, useful for hot runs to see if the input succesfully completes the SRFP calculation
+  checkex        0,                             #Activates safety checks for the existence of QM executables at the start of the run
+  rqminp         1,                             #Retain QM input files after the run. Default=0 (Off)
+  rqmout         1,                             #Unclear what this is. Probably something about retaining files
+  rqmchk         1,                             #Retain QM checkpoint files after run. Default=0 (Off)
+
+  scrdir "QM/",  #Scratch space to run QM calculation, neeed different spaces for each calculations so they dont overwrite each other
+
+  qmprog    'orca',                                          #QM package to use (gaussian or orca)
+  qmpath  '/mnt/lustre_fs/users/mjmcc/apps/orca/orca',       #Path to the QM Package
+  uvpath "/mnt/lustre_fs/users/mjmcc/apps/orca/orca_vpot",
+  maxcore = 5000,
+
+  unx  90,                                      # Number of grid points in the x direction  
+  uny  90,                                      # Number of grid points in the y direction 
+  unz  90,                                      # Number of grid points in the z direction
+  uhx 0.2,                                      # Spacing of grid points in the x direction (Angstroms)
+  uhy 0.2,                                      # Spacing of grid points in the y direction (Angstroms)
+  uhz 0.2,                                      # Spacing of grid points in the z direction (Angstroms)
+  GridFile 'IPolQgrd{CONF}',
+&end
+                                </pre>
+				
+				<br>
+				<u>modqy</u> - must be changed for the solvent that is being used. To determine the modq parameters one must calculate the dipole moment of the solvent model itself, then subtract the known dipole moment of the solvent in the gas phase, and find the dipole of some state that is twice as polarized as the actual solvent model, relative to the gas phase value. The current parameters are for TIP3P water.
+				<br>
+				<u>qmprog</u> - tells mdgx which quantum package to use orca or gaussian (I had issues getting gaussian to work in the past). 
+				<br>
+				<u>qmpath</u> - should point to the current install of orca.
+				<br>
+				<u>uvpath</u> - should point to a secondary program of orca called orca_vpot.
+				<br>
+				<u>unx/uny/unz</u> and <u>uhx/uhy/uhz</u> - These set the grid size in which to calculate the electrostatic potential and must be large enough to enclose your molecule. The first 3 set the number of grid points in the x/y/x directions and the second 3 set the spacing between grid points in the x/y/z directions. 
+				<br> 
+				<u>qmlev</u> - will set the level of QM theory to use. The default is MP2. 
+				<br> 
+				<u>basis</u> - will set the QM basis set to use. The default is cc-pvDZ. 
+				<br> 
+				The rest of the parameters can be changed, but for the most part should be good as they are. 
+				
+				<br><br>
+				Running these QM calulcations is by far the largest time sink in the entire procedure. The more electrons in your molecule and the more conformations used will significantly increase the time it takes to complete this step. To speed things up we can run each conformation in parallel on the local cluster.  <a href="QM_calculations.sh" download="QM_calculations.sh">QM_calculations.sh</a> is a bash script which will take the output from the belly simulations and run the QM calculations for each confromation. The output from these QM calculations will be added into the directories of each of the corresponding conformations. 
+
+				<br><br>
+				
+				At the end of stage 2 we should have IPolQgrd.solv and IPolQgrd.vacu files for each of our conformations. These grids will be used in stage 3 to perform charge fitting of our molecule.
+
+				</p>
+			
+				
+				<h3 id="cuda" style="color: #0702A8">Stage 3: Charge Fitting</h3>
+
+				<p align="justify">
+				  In stage 3 we are using ElectroStatic Potential (ESP) fitting to fit charges to our atoms. This is handled in the mdgx program, we just need to give it an input file. Below is an example charge fitting input file (<a href="charge_fit.in" download="charge_fit.in">charge_fit.in</a>) for our PDI system.
+				  
+				<pre>
+&files
+  -p    PDI.prmtop
+  -o    fit.out
+&end
+
+&fitq
+  ipolq  IPolQgrd1.vacu   IPolQgrd1.solv   PDI.prmtop  1.0
+  ipolq  IPolQgrd2.vacu   IPolQgrd2.solv   PDI.prmtop  1.0
+  ipolq  IPolQgrd3.vacu   IPolQgrd3.solv   PDI.prmtop  1.0
+  ipolq  IPolQgrd4.vacu   IPolQgrd4.solv   PDI.prmtop  1.0
+  ipolq  IPolQgrd5.vacu   IPolQgrd5.solv   PDI.prmtop  1.0
+
+  % General conditions for the REsP
+  pnrg          0.0                     # ("probe energy") tells mdgx to include points if they are accessible within 0.9572Å of points at which a TIP3P oxygen could be placed without incurring any van-der Waals penalty. TIP3P-related values a\
+re defaults
+  flim          0.39                    # ("fitting limit") tells mdgx to search through each electrostatic potential grid for viable points but exclude new points from fitting if they are closer than 0.39Å to any of those already selected
+  nfpt          3750                    # The number of fitting points select from each electrostatic potential grid
+  MaxMemory     4GB                     # How much memory it can allocate for its matrix equations when solving the IPolQ least-squares problems
+
+  % Equivalencies on atoms go here
+  equalq    '@N1,N2'
+  equalq    '@O1,O2,O3,O4'
+  equalq    '@H9,H10'
+  equalq    '@C1,C2,C23,C20'
+  equalq    '@C8,C3,C19,C22'
+  equalq    '@C7,C27'
+  equalq    '@C9,C24,C14,C18'
+  equalq    '@H2,H8,H7,H4'
+  equalq    '@H3,H1,H5,H6'
+  equalq    '@C4,C10,C17,C13'
+  equalq    '@C16,C12,C11,C5'
+  equalq    '@C15,C6'
+# minq      '@C2'
+&end
+
+                                </pre>
+				
+				<br>
+				In the &fitq section we want to make sure there is a line pointing to the IPolQgrd.solv and IPolQgrd.vacu for each conformation. The 1.0 at the end of the line tells the program how much to weight each conformation. It may be useful to change this value depending on how you obtained your conformations. At the bottom we can use the equalq function to restrain equivalent atoms to the same charge. Furthermore, sumq can be used to set the total charge of a group of atoms to a specific value. The mdgx script can be run using this command:
+				<pre> mdgx -i charge_fit.in 
+				  </pre>
+				
+				<br>
+				The output of this charge fitting will be <a href="fit.out" download="fit.out">fit.out</a>. This file will contain the newly calculated charges for each atom under the IPolQ(pert) column (Perturbation from the vacuum charges). These charges should be manually copied into a new prepi file or a new tleap library file. 
+				
+				<br><br>
+				At the end of stage 3 we now have new charges for our moelcule. This is the end of the first iteration through the procedure. 
+
+				</p>
+			
+				<h3 id="cuda" style="color: #0702A8">Stage 4: Iterate</h3>
+
+				<p align="justify">
+				  In stage 4 we should repeat the entire procedure again this time using the new charges. We do not need to generate new conformations, but new belly simulations will need to be run using the new charges as the solvent distribtuions around our molecule will change. Stages 1-3 should be repeated until the charges on the atoms converge. The charges should be pretty well converged after a single iteration if the initial guess of the charges was not way off. More iterations should be run to show this is true. 
+
+				</p>
+			</div>
+
+
+		</div>
+
+		
+
+	</div><!-- container -->
+	
+	
+  <!-- Fixed navbar footer -->
+  <nav class="navbar-default navbar-bottom" id="foot-navbar">
+    <div class="container">
+   		<div class="navbar-header">
+        	<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          		<span class="icon-bar"></span>
+          		<span class="icon-bar"></span>
+       		</button>
+      	</div> 
+      	<div class="collapse navbar-collapse" style="text-align:center">
+        	<ul class="nav navbar-nav" style="font-size: 100%;" align="center">
+        		<li> <a href="http://www.chem.colostate.edu/" style="color:rgb(255,255,255); text-decoration: none"> CSU Chemistry </a> </li>
+				<li> <a href="http://www.colostate.edu/" style="color:rgb(255,255,255); text-decoration: none"> CSU </a> </li>
+        	</ul>
+      	</div><!--/.nav-collapse -->
+    </div>
+  </nav>
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52127208-1', 'colostate.edu');
+  ga('send', 'pageview');
+
+</script>
+<script>
+	$('.nav a').on('click', function(){
+    $(".navbar-toggle").click();
+});
+</script>
+
+
+<!-- End Document
+================================================== -->
+</body>
+</html>
